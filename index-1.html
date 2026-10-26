@@ -199,6 +199,40 @@ $("signup").onclick=async()=>{
  const fullName=$("name").value.trim();
  const email=$("email").value.trim();
  const password=$("password").value;
+
+ if(!fullName){
+  msg("Enter your full name.");
+  return;
+ }
+
+ msg("Creating account...");
+
+ try {
+  const {data,error}=await db.auth.signUp({
+   email,
+   password,
+   options:{data:{full_name:fullName}}
+  });
+
+  if(error){
+   msg(error.message);
+   return;
+  }
+
+  if(data.session){
+   msg("Account created!");
+   await enterApp(data.user);
+  } else {
+   msg("Check your email to confirm your account, then log in.");
+  }
+ } catch(error) {
+  msg("Connection problem. Please refresh and try again.");
+  console.error(error);
+ }
+};
+ const fullName=$("name").value.trim();
+ const email=$("email").value.trim();
+ const password=$("password").value;
  if(!fullName){msg("Enter your full name.");return;}
  msg("Creating account...");
  const {data,error}=await db.auth.signUp({
