@@ -52,7 +52,7 @@ nav button{flex:1;min-width:90px}
     <label for="password">Password</label>
     <input id="password" type="password" required minlength="6" autocomplete="current-password" placeholder="At least 6 characters">
     <button type="button" id="signup" class="full">Create account</button>
-    <button type="submit" class="full secondary">Log in</button>
+    <button type="button" id="loginBtn" class="full secondary">Log in</button>
   </form>
   <p id="message" role="status"></p>
 </section>
@@ -211,7 +211,22 @@ $("signup").onclick=async()=>{
  else msg("Account created if accepted. Check your email to confirm, then log in.");
 };
 
-$("authForm").onsubmit=async e=>{
+$("loginBtn").onclick=async()=>{
+ msg("Logging in...");
+
+ const {data,error}=await db.auth.signInWithPassword({
+  email:$("email").value.trim(),
+  password:$("password").value
+ });
+
+ if(error){
+  msg(error.message);
+  return;
+ }
+
+ msg("");
+ await enterApp(data.user);
+};
  e.preventDefault();
  msg("Logging in...");
  const {data,error}=await db.auth.signInWithPassword({
