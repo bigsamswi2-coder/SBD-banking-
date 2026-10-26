@@ -1,390 +1,259 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SBD Banking</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f1f7f3;
-      color: #173c2b;
-    }
-
-    header {
-      background: #087443;
-      color: white;
-      padding: 22px;
-      text-align: center;
-    }
-
-    header h1 {
-      margin: 0;
-    }
-
-    .container {
-      max-width: 440px;
-      margin: 30px auto;
-      padding: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 24px;
-      margin-bottom: 18px;
-      border-radius: 16px;
-      box-shadow: 0 4px 15px #00000010;
-    }
-
-    h2 {
-      margin-top: 0;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      margin: 8px 0;
-      border: 1px solid #ccd8d0;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #087443;
-      color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    button.secondary {
-      background: #e4f1e9;
-      color: #087443;
-    }
-
-    .balance {
-      background: #087443;
-      color: white;
-      padding: 24px;
-      border-radius: 14px;
-    }
-
-    .amount {
-      font-size: 30px;
-      font-weight: bold;
-      margin-top: 12px;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    #message {
-      margin-top: 15px;
-      overflow-wrap: anywhere;
-      line-height: 1.5;
-    }
-
-    .muted {
-      color: #63756a;
-      font-size: 14px;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SBD Banking</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f7f5;font-family:Arial,sans-serif;color:#173b2b}
+header{background:#086b42;color:white;padding:20px}
+header h2{margin:0}
+header p{margin:6px 0 0;font-size:13px}
+main{max-width:650px;margin:auto;padding:18px}
+.card{background:white;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 3px 15px #173b2b0c}
+label{display:block;font-size:13px;margin:12px 0 6px}
+input{width:100%;padding:13px;border:1px solid #d5e0d9;border-radius:8px;font-size:16px}
+button{border:0;border-radius:9px;padding:13px;background:#087747;color:white;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5}
+.full{width:100%;margin-top:10px}
+.secondary{background:#e5f2e9;color:#086b42}
+.hidden{display:none!important}
+.balance{background:#086b42;color:white;border-radius:16px;padding:22px}
+.balance small{opacity:.85}
+.amount{font-size:32px;font-weight:bold;margin:12px 0}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.actions button{min-height:48px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:14px 0;border-bottom:1px solid #edf1ee}
+.row:last-child{border:0}
+.muted{color:#718078;font-size:13px}
+#message{overflow-wrap:anywhere;line-height:1.5}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+nav button{flex:1;min-width:90px}
+</style>
 </head>
-
 <body>
-  <header>
-    <h1>SBD Banking</h1>
-    <p>Your banking dashboard</p>
-  </header>
 
-  <main class="container">
+<header>
+  <h2>SBD Banking</h2>
+  <p>Simple banking. Built around you.</p>
+</header>
 
-    <section id="authSection" class="card">
-      <h2>Welcome</h2>
-      <p>Create an account or log in to continue.</p>
+<main>
+<section id="auth" class="card">
+  <h3>Welcome to SBD Banking</h3>
+  <p class="muted">Sign in or create your account.</p>
+  <form id="authForm">
+    <label for="name">Full name (for registration)</label>
+    <input id="name" autocomplete="name" placeholder="Your full name">
+    <label for="email">Email address</label>
+    <input id="email" type="email" required autocomplete="email" placeholder="you@example.com">
+    <label for="password">Password</label>
+    <input id="password" type="password" required minlength="6" autocomplete="current-password" placeholder="At least 6 characters">
+    <button type="button" id="signup" class="full">Create account</button>
+    <button type="button" id="loginBtn" class="full secondary">Log in</button>
+  </form>
+  <p id="message" role="status"></p>
+</section>
 
-      <form id="authForm">
-        <input
-          id="fullName"
-          type="text"
-          placeholder="Full name (for registration)"
-          autocomplete="name"
-        >
+<section id="app" class="hidden">
+  <div class="card">
+    <h3 id="greeting">Welcome</h3>
+    <p id="userEmail" class="muted"></p>
+    <div class="balance">
+      <small>Available wallet balance</small>
+      <div class="amount" id="balance">Loading...</div>
+      <small>Nigerian Naira (NGN)</small>
+    </div>
+    <div class="actions">
+      <button onclick="showPage('send')">Send money</button>
+      <button onclick="showPage('history')" class="secondary">Transactions</button>
+    </div>
+    <button id="refresh" class="full secondary">Refresh balance</button>
+    <p id="walletMessage" class="muted" role="status"></p>
+  </div>
 
-        <input
-          id="email"
-          type="email"
-          placeholder="Email address"
-          autocomplete="email"
-          required
-        >
+  <nav>
+    <button onclick="showPage('home')">Home</button>
+    <button onclick="showPage('history')" class="secondary">History</button>
+    <button onclick="showPage('account')" class="secondary">Account</button>
+  </nav>
 
-        <input
-          id="password"
-          type="password"
-          placeholder="Password (at least 6 characters)"
-          autocomplete="current-password"
-          minlength="6"
-          required
-        >
+  <section id="homePage" class="card">
+    <h3>Recent transactions</h3>
+    <div id="recent"><p class="muted">Loading transactions...</p></div>
+    <button class="full secondary" onclick="showPage('history')">View all transactions</button>
+  </section>
 
-        <button type="button" id="signupBtn">
-          Create Account
-        </button>
+  <section id="historyPage" class="card hidden">
+    <h3>Transaction history</h3>
+    <div id="history"><p class="muted">Loading transactions...</p></div>
+  </section>
 
-        <button type="submit" id="loginBtn" class="secondary">
-          Log In
-        </button>
-      </form>
+  <section id="sendPage" class="card hidden">
+    <h3>Send money</h3>
+    <p class="muted">Transfers will be enabled after secure server-side processing is configured.</p>
+    <label for="recipient">Recipient email</label>
+    <input id="recipient" type="email" placeholder="Recipient's email">
+    <label for="sendAmount">Amount (NGN)</label>
+    <input id="sendAmount" type="number" min="1" step="0.01" placeholder="0.00">
+    <button class="full" disabled>Transfers not yet enabled</button>
+  </section>
 
-      <p id="message" role="status" aria-live="polite"></p>
-    </section>
+  <section id="accountPage" class="card hidden">
+    <h3>Account details</h3>
+    <div class="row"><span>Name</span><strong id="accountName">—</strong></div>
+    <div class="row"><span>Email</span><span id="accountEmail">—</span></div>
+    <div class="row"><span>Wallet currency</span><strong>NGN</strong></div>
+    <button id="logout" class="full">Log out</button>
+  </section>
+</section>
+</main>
 
-    <section id="dashboard" class="hidden">
-      <div class="card">
-        <h2>Welcome, <span id="customerName">Customer</span></h2>
-        <p id="customerEmail" class="muted"></p>
+<script>
+const URL="https://lxbzslddcaxzijuefovc.supabase.co";
+const KEY="sb_publishable_FmBYWUxJUBL1uY2lZPgdog_I7S1gClb";
+const db=window.supabase.createClient(URL,KEY);
+const $=id=>document.getElementById(id);
+let user=null;
 
-        <div class="balance">
-          <div>Wallet Balance</div>
-          <div class="amount" id="balance">₦0.00</div>
-          <p>Nigerian Naira (NGN)</p>
-        </div>
+function money(n){
+ return "₦"+Number(n).toLocaleString("en-NG",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function msg(t){$("message").textContent=t;}
 
-        <p id="walletMessage" role="status"></p>
+function showPage(page){
+ ["home","history","send","account"].forEach(p=>{
+  $(p+"Page").classList.toggle("hidden",p!==page);
+ });
+ if(page==="history")loadTransactions();
+ if(page==="home")loadTransactions();
+}
 
-        <button id="refreshBtn">Refresh Balance</button>
-        <button id="logoutBtn" class="secondary">Log Out</button>
-      </div>
-    </section>
+async function loadWallet(){
+ $("balance").textContent="Loading...";
+ $("walletMessage").textContent="";
+ const {data,error}=await db.from("wallets")
+  .select("balance,currency").eq("user_id",user.id).maybeSingle();
+ if(error){
+  $("balance").textContent="Unavailable";
+  $("walletMessage").textContent="Wallet could not be loaded. Check database permissions.";
+  console.error(error);
+  return;
+ }
+ if(!data){
+  $("balance").textContent="Unavailable";
+  $("walletMessage").textContent="No wallet exists for this account yet.";
+  return;
+ }
+ $("balance").textContent=money(data.balance);
+ $("walletMessage").textContent="Wallet currency: "+data.currency;
+}
 
-  </main>
+async function loadTransactions(){
+ const {data,error}=await db.from("transactions")
+  .select("type,amount,description,status,created_at")
+  .eq("user_id",user.id).order("created_at",{ascending:false}).limit(30);
+ const recent=$("recent"),history=$("history");
+ if(error){
+  recent.textContent="Transaction history is unavailable.";
+  history.textContent="Transaction history is unavailable.";
+  console.error(error);
+  return;
+ }
+ if(!data.length){
+  recent.innerHTML='<p class="muted">No transactions recorded yet.</p>';
+  history.innerHTML='<p class="muted">Your transaction history will appear here when transactions are recorded.</p>';
+  return;
+ }
+ const html=data.map(t=>`
+  <div class="row">
+   <div><strong>${escapeText(t.description||t.type)}</strong>
+    <div class="muted">${new Date(t.created_at).toLocaleString()}</div>
+    <div class="muted">${escapeText(t.status)}</div></div>
+   <strong>${money(t.amount)}</strong>
+  </div>`).join("");
+ recent.innerHTML=html.split("</div>").slice(0,4).join("</div>");
+ history.innerHTML=html;
+}
+function escapeText(s){
+ const d=document.createElement("div");d.textContent=s;return d.innerHTML;
+}
 
-  <script>
-    const SUPABASE_URL =
-      "https://lxbzslddcaxzijuefovc.supabase.co";
+async function enterApp(u){
+ user=u;
+ $("auth").classList.add("hidden");
+ $("app").classList.remove("hidden");
+ $("userEmail").textContent=u.email||"";
+ $("accountEmail").textContent=u.email||"";
+ const {data}=await db.from("profiles").select("full_name").eq("id",u.id).maybeSingle();
+ const name=data?.full_name||u.user_metadata?.full_name||"Customer";
+ $("greeting").textContent="Welcome, "+name;
+ $("accountName").textContent=name;
+ await loadWallet();
+ await loadTransactions();
+}
 
-    const SUPABASE_KEY =
-      "sb_publishable_FmBYWUxJUBL1uY2lZPgdog_I7S1gClb";
+$("signup").onclick=async()=>{
+ const fullName=$("name").value.trim();
+ const email=$("email").value.trim();
+ const password=$("password").value;
+ if(!fullName){msg("Enter your full name.");return;}
+ msg("Creating account...");
+ const {data,error}=await db.auth.signUp({
+  email,password,
+  options:{data:{full_name:fullName},
+   emailRedirectTo:"https://bigsamswi2-coder.github.io/SBD-banking-/"}
+ });
+ if(error){msg(error.message);return;}
+ if(data.session){msg("");await enterApp(data.user);}
+ else msg("Account created if accepted. Check your email to confirm, then log in.");
+};
 
-    const db = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_KEY
-    );
+$("loginBtn").onclick=async()=>{
+ msg("Logging in...");
 
-    const authSection = document.getElementById("authSection");
-    const dashboard = document.getElementById("dashboard");
-    const message = document.getElementById("message");
+ const {data,error}=await db.auth.signInWithPassword({
+  email:$("email").value.trim(),
+  password:$("password").value
+ });
 
-    let currentUser = null;
+ if(error){
+  msg(error.message);
+  return;
+ }
 
-    function showMessage(text) {
-      message.textContent = text;
-    }
+ msg("");
+ await enterApp(data.user);
+};
+ e.preventDefault();
+ msg("Logging in...");
+ const {data,error}=await db.auth.signInWithPassword({
+  email:$("email").value.trim(),password:$("password").value
+ });
+ if(error){msg(error.message);return;}
+ msg("");await enterApp(data.user);
+};
 
-    function formatNaira(amount) {
-      return "₦" + Number(amount).toLocaleString("en-NG", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      });
-    }
+$("refresh").onclick=loadWallet;
+$("logout").onclick=async()=>{
+ const {error}=await db.auth.signOut();
+ if(error){alert("Could not log out. Please try again.");return;}
+ $("app").classList.add("hidden");$("auth").classList.remove("hidden");
+ user=null;msg("Logged out.");
+};
 
-    async function loadWallet(user) {
-      const walletMessage = document.getElementById("walletMessage");
-      const balance = document.getElementById("balance");
+db.auth.onAuthStateChange((event,session)=>{
+ if(event==="SIGNED_OUT"){
+  user=null;$("app").classList.add("hidden");$("auth").classList.remove("hidden");
+ }
+});
 
-      walletMessage.textContent = "Loading wallet...";
-      balance.textContent = "Loading...";
-
-      const { data, error } = await db
-        .from("wallets")
-        .select("balance, currency")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (error) {
-        balance.textContent = "Unavailable";
-        walletMessage.textContent =
-          "Could not load your wallet. Please try again.";
-        console.error("Wallet error:", error);
-        return;
-      }
-
-      if (!data) {
-        balance.textContent = "Unavailable";
-        walletMessage.textContent =
-          "No wallet was found for this account.";
-        return;
-      }
-
-      balance.textContent = formatNaira(data.balance);
-      walletMessage.textContent =
-        "Currency: " + data.currency;
-    }
-
-    async function showDashboard(user) {
-      currentUser = user;
-
-      authSection.classList.add("hidden");
-      dashboard.classList.remove("hidden");
-
-      document.getElementById("customerEmail").textContent =
-        user.email || "";
-
-      const { data: profile } = await db
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      document.getElementById("customerName").textContent =
-        profile?.full_name ||
-        user.user_metadata?.full_name ||
-        "Customer";
-
-      await loadWallet(user);
-    }
-
-    function showLogin() {
-      currentUser = null;
-      dashboard.classList.add("hidden");
-      authSection.classList.remove("hidden");
-    }
-
-    document.getElementById("signupBtn").addEventListener(
-      "click",
-      async () => {
-        const fullName =
-          document.getElementById("fullName").value.trim();
-
-        const email =
-          document.getElementById("email").value.trim();
-
-        const password =
-          document.getElementById("password").value;
-
-        if (!fullName) {
-          showMessage("Please enter your full name.");
-          return;
-        }
-
-        showMessage("Creating your account...");
-
-        const { data, error } = await db.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo:
-              "https://bigsamswi2-coder.github.io/SBD-banking-/",
-            data: {
-              full_name: fullName
-            }
-          }
-        });
-
-        if (error) {
-          showMessage(error.message);
-          return;
-        }
-
-        if (data.session) {
-          await showDashboard(data.session.user);
-        } else {
-          showMessage(
-            "Account request received. Check your email to confirm " +
-            "your account, then log in."
-          );
-        }
-      }
-    );
-
-    document.getElementById("authForm").addEventListener(
-      "submit",
-      async (event) => {
-        event.preventDefault();
-
-        const email =
-          document.getElementById("email").value.trim();
-
-        const password =
-          document.getElementById("password").value;
-
-        showMessage("Logging in...");
-
-        const { data, error } = await db.auth.signInWithPassword({
-          email,
-          password
-        });
-
-        if (error) {
-          showMessage(error.message);
-          return;
-        }
-
-        showMessage("");
-        await showDashboard(data.user);
-      }
-    );
-
-    document.getElementById("refreshBtn").addEventListener(
-      "click",
-      async () => {
-        if (currentUser) {
-          await loadWallet(currentUser);
-        }
-      }
-    );
-
-    document.getElementById("logoutBtn").addEventListener(
-      "click",
-      async () => {
-        const { error } = await db.auth.signOut();
-
-        if (error) {
-          document.getElementById("walletMessage").textContent =
-            "Could not log out. Please try again.";
-          return;
-        }
-
-        showLogin();
-        showMessage("You have logged out.");
-      }
-    );
-
-    async function startApp() {
-      const { data, error } = await db.auth.getSession();
-
-      if (error) {
-        showMessage("Could not check your login session.");
-        return;
-      }
-
-      if (data.session) {
-        await showDashboard(data.session.user);
-      }
-    }
-
-    db.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
-        showLogin();
-      }
-    });
-
-    startApp();
-  </script>
+(async()=>{
+ const {data}=await db.auth.getSession();
+ if(data.session)await enterApp(data.session.user);
+})();
+</script>
 </body>
 </html>
