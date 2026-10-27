@@ -5,51 +5,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SBD Banking</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f2f7f3;color:#183b2b;font-family:Arial,sans-serif}
-header{background:#087747;color:white;padding:24px}
-header h1{margin:0;font-size:28px}
-header p{margin-bottom:0}
-main{max-width:600px;margin:auto;padding:18px}
-.card{background:white;padding:22px;border-radius:16px;margin:18px 0;box-shadow:0 4px 18px #0000000b}
-input{display:block;width:100%;padding:14px;margin:10px 0;border:1px solid #ccd9d0;border-radius:8px;font-size:16px}
+body{margin:0;background:#f2f7f3;color:#173b2b;font-family:Arial,sans-serif}
+header{background:#087747;color:white;padding:22px}
+header h1{margin:0}
+main{max-width:620px;margin:auto;padding:18px}
+.card{background:white;padding:22px;border-radius:16px;margin:18px 0;box-shadow:0 4px 16px #0001}
+input{width:100%;padding:14px;margin:9px 0;border:1px solid #ccd9d0;border-radius:8px;font-size:16px}
 button{width:100%;padding:14px;margin-top:10px;border:0;border-radius:9px;background:#087747;color:white;font-size:16px;font-weight:bold}
 .light{background:#e5f2e9;color:#087747}
 .hidden{display:none!important}
-.balance{background:#087747;color:white;padding:24px;border-radius:14px;margin-top:20px}
-.amount{font-size:32px;font-weight:bold;margin:15px 0}
-.row{padding:13px 0;border-bottom:1px solid #e5ece7;overflow-wrap:anywhere}
-.small{font-size:13px;color:#708077}
+.balance{background:#087747;color:white;padding:22px;border-radius:14px;margin-top:18px}
+.amount{font-size:32px;font-weight:bold;margin:14px 0}
+.row{padding:14px 0;border-bottom:1px solid #e5ece7;overflow-wrap:anywhere}
+.small{font-size:13px;color:#718078}
 #message,#walletMessage{overflow-wrap:anywhere;line-height:1.5}
-nav{display:flex;gap:8px;flex-wrap:wrap}
+nav{display:flex;gap:8px}
 nav button{flex:1}
 </style>
 </head>
-
 <body>
+
 <header>
 <h1>SBD Banking</h1>
 <p>Simple banking. Built around you.</p>
 </header>
 
 <main>
-
 <section id="auth" class="card">
-<h2 id="formTitle">Welcome to SBD Banking</h2>
-<p id="formDescription">Log in or create your account.</p>
+<h2 id="title">Welcome to SBD Banking</h2>
+<p id="description">Log in or create your account.</p>
 
 <form id="authForm">
-<div id="nameField">
 <input id="fullName" placeholder="Full name" autocomplete="name">
-</div>
-<input id="email" type="email" placeholder="Email address" autocomplete="email" required>
-<input id="password" type="password" placeholder="Password (minimum 6 characters)" minlength="6" autocomplete="current-password" required>
-<button type="submit" id="submitBtn">Create account</button>
+<input id="email" type="email" placeholder="Email address" required autocomplete="email">
+<input id="password" type="password" placeholder="Password (minimum 6 characters)" minlength="6" required autocomplete="current-password">
+<button id="submitBtn" type="submit">Log in</button>
 </form>
 
-<button type="button" id="switchBtn" class="light">Already have an account? Log in</button>
+<button id="switchBtn" type="button" class="light">New here? Create an account</button>
 <p id="message" role="status"></p>
 </section>
 
@@ -60,274 +55,167 @@ nav button{flex:1}
 
 <div class="balance">
 <div>Wallet balance</div>
-<div class="amount" id="balance">Loading...</div>
+<div id="balance" class="amount">Loading...</div>
 <div>Nigerian Naira (NGN)</div>
 </div>
 
 <p id="walletMessage"></p>
-<button type="button" id="refreshBtn">Refresh balance</button>
+<button id="refreshBtn">Refresh balance</button>
 </div>
 
 <nav>
-<button type="button" id="homeBtn">Overview</button>
-<button type="button" id="historyBtn" class="light">Transactions</button>
-<button type="button" id="accountBtn" class="light">Account</button>
+<button id="homeBtn">Overview</button>
+<button id="historyBtn" class="light">Transactions</button>
+<button id="accountBtn" class="light">Account</button>
 </nav>
 
 <div id="homePage" class="card">
 <h3>Welcome to your dashboard</h3>
-<p>Your wallet balance and recorded transactions will appear here.</p>
+<p>Your real wallet balance and recorded transactions will appear here.</p>
 </div>
 
 <div id="historyPage" class="card hidden">
 <h3>Transaction history</h3>
-<div id="transactions">Loading transactions...</div>
+<div id="transactions">Loading...</div>
 </div>
 
 <div id="accountPage" class="card hidden">
 <h3>Account details</h3>
 <div class="row">Name: <strong id="accountName"></strong></div>
 <div class="row">Email: <span id="accountEmail"></span></div>
-<button type="button" id="logoutBtn">Log out</button>
+<button id="logoutBtn">Log out</button>
 </div>
 </section>
-
 </main>
 
 <script>
-(function(){
-const SUPABASE_URL="https://lxbzslddcaxzijuefovc.supabase.co";
-const SUPABASE_KEY="sb_publishable_FmBYWUxJUBL1uY2lZPgdog_I7S1gClb";
+(() => {
+const SUPABASE_URL = "https://lxbzslddcaxzijuefovc.supabase.co";
+const SUPABASE_KEY = "sb_publishable_FmBYWUxJUBL1u2YlZPgdog_I7S1gClb";
 
-const $=id=>document.getElementById(id);
-let db;
-let currentUser=null;
-let mode="login";
+const $ = id => document.getElementById(id);
+let db = null;
+let currentUser = null;
+let mode = "login";
 
-function message(text){
-$("message").textContent=text;
+function showMessage(text) {
+  $("message").textContent = text;
 }
 
-function naira(value){
-return "₦"+Number(value).toLocaleString("en-NG",{
-minimumFractionDigits:2,
-maximumFractionDigits:2
-});
+function money(value) {
+  return "₦" + Number(value).toLocaleString("en-NG", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 }
 
-function setMode(newMode){
-mode=newMode;
-$("formTitle").textContent=mode==="signup"?"Create your SBD account":"Welcome back";
-$("formDescription").textContent=mode==="signup"?"Enter your details to register.":"Log in to access your account.";
-$("nameField").classList.toggle("hidden",mode!=="signup");
-$("fullName").required=mode==="signup";
-$("submitBtn").textContent=mode==="signup"?"Create account":"Log in";
-$("switchBtn").textContent=mode==="signup"?"Already registered? Log in":"New here? Create an account";
-message("");
+function setMode(next) {
+  mode = next;
+  $("title").textContent = mode === "signup"
+    ? "Create your SBD account" : "Welcome back";
+  $("description").textContent = mode === "signup"
+    ? "Enter your details to register." : "Log in to access your account.";
+  $("fullName").classList.toggle("hidden", mode !== "signup");
+  $("fullName").required = mode === "signup";
+  $("submitBtn").textContent = mode === "signup"
+    ? "Create account" : "Log in";
+  $("switchBtn").textContent = mode === "signup"
+    ? "Already registered? Log in" : "New here? Create an account";
+  showMessage("");
 }
 
-$("switchBtn").addEventListener("click",function(){
-setMode(mode==="login"?"signup":"login");
-});
-
-function showPage(page){
-["home","history","account"].forEach(name=>{
-$(name+"Page").classList.toggle("hidden",name!==page);
-});
-if(page==="history")loadTransactions();
-}
-
-$("homeBtn").onclick=()=>showPage("home");
-$("historyBtn").onclick=()=>showPage("history");
-$("accountBtn").onclick=()=>showPage("account");
-
-async function loadWallet(){
-$("balance").textContent="Loading...";
-$("walletMessage").textContent="";
-
-const {data,error}=await db.from("wallets")
-.select("balance,currency")
-.eq("user_id",currentUser.id)
-.maybeSingle();
-
-if(error){
-$("balance").textContent="Unavailable";
-$("walletMessage").textContent="Wallet access failed. Please try again.";
-console.error("Wallet error:",error.message);
-return;
-}
-
-if(!data){
-$("balance").textContent="Unavailable";
-$("walletMessage").textContent="No wallet was found for this account.";
-return;
-}
-
-$("balance").textContent=naira(data.balance);
-$("walletMessage").textContent="Currency: "+data.currency;
-}
-
-async function loadTransactions(){
-$("transactions").textContent="Loading transactions...";
-
-const {data,error}=await db.from("transactions")
-.select("type,amount,description,status,created_at")
-.eq("user_id",currentUser.id)
-.order("created_at",{ascending:false})
-.limit(30);
-
-if(error){
-$("transactions").textContent="Unable to load transaction history.";
-console.error("Transaction error:",error.message);
-return;
-}
-
-if(!data.length){
-$("transactions").textContent="No transactions recorded yet.";
-return;
-}
-
-$("transactions").replaceChildren();
-
-data.forEach(item=>{
-const row=document.createElement("div");
-row.className="row";
-
-const title=document.createElement("strong");
-title.textContent=item.description||item.type;
-
-const details=document.createElement("div");
-details.className="small";
-details.textContent=new Date(item.created_at).toLocaleString()+" · "+item.status;
-
-const amount=document.createElement("div");
-amount.textContent=naira(item.amount);
-
-row.append(title,details,amount);
-$("transactions").appendChild(row);
-});
-}
-
-async function openDashboard(user){
-currentUser=user;
-$("auth").classList.add("hidden");
-$("dashboard").classList.remove("hidden");
-
-$("userEmail").textContent=user.email||"";
-$("accountEmail").textContent=user.email||"";
-
-const {data,error}=await db.from("profiles")
-.select("full_name")
-.eq("id",user.id)
-.maybeSingle();
-
-const name=(!error&&data&&data.full_name)||user.user_metadata?.full_name||"Customer";
-
-$("greeting").textContent="Welcome, "+name;
-$("accountName").textContent=name;
-
-await loadWallet();
-showPage("home");
-}
-
-$("authForm").addEventListener("submit",async function(event){
-event.preventDefault();
-
-if(!db){
-message("Connection is not ready. Refresh the page and try again.");
-return;
-}
-
-const email=$("email").value.trim();
-const password=$("password").value;
-const fullName=$("fullName").value.trim();
-
-$("submitBtn").disabled=true;
-$("switchBtn").disabled=true;
-message(mode==="signup"?"Creating account...":"Logging in...");
-
-try{
-if(mode==="signup"){
-if(!fullName){
-message("Please enter your full name.");
-return;
-}
-
-const {data,error}=await db.auth.signUp({
-email:email,
-password:password,
-options:{data:{full_name:fullName}}
-});
-
-if(error){
-message(error.message);
-return;
-}
-
-if(data.session){
-message("");
-await openDashboard(data.user);
-}else{
-message("Account created. Check your email for a confirmation link, then log in.");
-setMode("login");
-}
-}else{
-const {data,error}=await db.auth.signInWithPassword({
-email:email,
-password:password
-});
-
-if(error){
-message(error.message);
-return;
-}
-
-message("");
-await openDashboard(data.user);
-}
-}catch(error){
-console.error(error);
-message("Something went wrong. Refresh the page and try again.");
-}finally{
-$("submitBtn").disabled=false;
-$("switchBtn").disabled=false;
-}
-});
-
-$("refreshBtn").onclick=loadWallet;
-
-$("logoutBtn").onclick=async function(){
-const {error}=await db.auth.signOut();
-if(error){
-alert("Logout failed. Please try again.");
-return;
-}
-currentUser=null;
-$("dashboard").classList.add("hidden");
-$("auth").classList.remove("hidden");
-setMode("login");
+$("switchBtn").onclick = () => {
+  setMode(mode === "login" ? "signup" : "login");
 };
 
-async function start(){
-if(!window.supabase){
-message("Connection library failed to load. Check your internet and refresh.");
-return;
+function showPage(page) {
+  ["home", "history", "account"].forEach(name => {
+    $(name + "Page").classList.toggle("hidden", name !== page);
+  });
+  if (page === "history") loadTransactions();
 }
 
-db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+$("homeBtn").onclick = () => showPage("home");
+$("historyBtn").onclick = () => showPage("history");
+$("accountBtn").onclick = () => showPage("account");
 
-const {data,error}=await db.auth.getSession();
-if(error){
-message("Unable to check your session. Please refresh.");
-return;
-}
-if(data.session){
-await openDashboard(data.session.user);
-}
+async function loadWallet() {
+  $("balance").textContent = "Loading...";
+  $("walletMessage").textContent = "";
+
+  const { data, error } = await db.from("wallets")
+    .select("balance,currency")
+    .eq("user_id", currentUser.id)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Wallet error:", error);
+    $("balance").textContent = "Unavailable";
+    $("walletMessage").textContent =
+      "Unable to access wallet. Please check database permissions.";
+    return;
+  }
+
+  if (!data) {
+    $("balance").textContent = "Unavailable";
+    $("walletMessage").textContent =
+      "No wallet exists for this account yet.";
+    return;
+  }
+
+  $("balance").textContent = money(data.balance);
+  $("walletMessage").textContent = "Currency: " + data.currency;
 }
 
-start();
-})();
-</script>
-</body>
-</html>
+async function loadTransactions() {
+  $("transactions").textContent = "Loading transactions...";
+
+  const { data, error } = await db.from("transactions")
+    .select("type,amount,description,status,created_at")
+    .eq("user_id", currentUser.id)
+    .order("created_at", { ascending: false })
+    .limit(30);
+
+  if (error) {
+    console.error("Transaction error:", error);
+    $("transactions").textContent =
+      "Unable to load transaction history.";
+    return;
+  }
+
+  if (!data.length) {
+    $("transactions").textContent = "No transactions recorded yet.";
+    return;
+  }
+
+  $("transactions").replaceChildren();
+
+  data.forEach(item => {
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const heading = document.createElement("strong");
+    heading.textContent = item.description || item.type;
+
+    const details = document.createElement("div");
+    details.className = "small";
+    details.textContent =
+      new Date(item.created_at).toLocaleString() + " · " + item.status;
+
+    const amount = document.createElement("div");
+    amount.textContent = money(item.amount);
+
+    row.append(heading, details, amount);
+    $("transactions").appendChild(row);
+  });
+}
+
+async function enterDashboard(user) {
+  currentUser = user;
+  $("auth").classList.add("hidden");
+  $("dashboard").classList.remove("hidden");
+  $("userEmail").textContent = user.email || "";
+  $("accountEmail").textContent = user.email || "";
+
+  const { data, error } = await db.from("profiles")
+    .select("full_name").eq("id", user.id).maybe
